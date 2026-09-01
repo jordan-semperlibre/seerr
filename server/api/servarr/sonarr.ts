@@ -74,6 +74,7 @@ export interface SonarrSeries {
   id?: number;
   rootFolderPath?: string;
   addOptions?: {
+    monitor?: 'pilot';
     ignoreEpisodesWithFiles?: boolean;
     ignoreEpisodesWithoutFiles?: boolean;
     searchForMissingEpisodes?: boolean;
@@ -282,6 +283,7 @@ class SonarrAPI extends ServarrBase<{
           rootFolderPath: options.rootFolderPath,
           seriesType: options.seriesType,
           addOptions: {
+            monitor: 'pilot',
             ignoreEpisodesWithFiles: true,
             searchForMissingEpisodes: options.searchNow,
           },
