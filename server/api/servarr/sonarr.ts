@@ -1,3 +1,4 @@
+import type { SonarrMonitorType } from '@server/constants/sonarr';
 import logger from '@server/logger';
 import type { AxiosResponse } from 'axios';
 import ServarrBase from './base';
@@ -74,6 +75,7 @@ export interface SonarrSeries {
   id?: number;
   rootFolderPath?: string;
   addOptions?: {
+    monitor?: SonarrMonitorType;
     ignoreEpisodesWithFiles?: boolean;
     ignoreEpisodesWithoutFiles?: boolean;
     searchForMissingEpisodes?: boolean;
@@ -101,6 +103,7 @@ export interface AddSeriesOptions {
   seriesType: SonarrSeries['seriesType'];
   monitored?: boolean;
   monitorNewItems?: SonarrSeries['monitorNewItems'];
+  monitorNewSeries?: SonarrMonitorType;
   searchNow?: boolean;
 }
 
@@ -282,6 +285,9 @@ class SonarrAPI extends ServarrBase<{
           rootFolderPath: options.rootFolderPath,
           seriesType: options.seriesType,
           addOptions: {
+            ...(options.monitorNewSeries
+              ? { monitor: options.monitorNewSeries }
+              : {}),
             ignoreEpisodesWithFiles: true,
             searchForMissingEpisodes: options.searchNow,
           },

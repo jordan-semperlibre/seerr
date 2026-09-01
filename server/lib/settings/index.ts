@@ -1,4 +1,5 @@
 import { MediaServerType } from '@server/constants/server';
+import type { SonarrMonitorType } from '@server/constants/sonarr';
 import { Permission } from '@server/lib/permissions';
 import { runMigrations } from '@server/lib/settings/migrator';
 import type { AvailableLocale } from '@server/types/languages';
@@ -101,6 +102,7 @@ export interface SonarrSettings extends DVRSettings {
   animeTags?: number[];
   enableSeasonFolders: boolean;
   monitorNewItems: 'all' | 'none';
+  monitorNewSeries?: SonarrMonitorType;
 }
 
 interface Quota {

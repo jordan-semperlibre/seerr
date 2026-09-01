@@ -6,11 +6,15 @@ import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
 import { isValidURL } from '@app/utils/urlValidationHelper';
 import { Transition } from '@headlessui/react';
+import {
+  SONARR_MONITOR_TYPES,
+  type SonarrMonitorType,
+} from '@server/constants/sonarr';
 import type { SonarrSettings } from '@server/lib/settings';
 import axios from 'axios';
 import { Field, Formik } from 'formik';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { type MessageDescriptor, useIntl } from 'react-intl';
 import type { OnChangeValue } from 'react-select';
 import Select from 'react-select';
 import * as Yup from 'yup';
@@ -83,6 +87,18 @@ const messages = defineMessages('components.Settings.SonarrModal', {
   monitorNewItems: 'Monitor New Seasons',
   monitorNewItemsHelp:
     'Whether Sonarr should monitor (All) or not (None) new seasons when a series is added.',
+  monitorNewSeries: 'New Series Monitoring',
+  monitorNewSeriesHelp:
+    'Controls which episodes Sonarr monitors when Seerr adds a series. Requested Seasons preserves the current behavior.',
+  monitorNewSeriesRequested: 'Requested Seasons (Default)',
+  monitorNewSeriesAll: 'All Episodes',
+  monitorNewSeriesFuture: 'Future Episodes',
+  monitorNewSeriesMissing: 'Missing Episodes',
+  monitorNewSeriesExisting: 'Existing Episodes',
+  monitorNewSeriesPilot: 'Pilot Episode',
+  monitorNewSeriesFirstSeason: 'First Season',
+  monitorNewSeriesLatestSeason: 'Latest Season',
+  monitorNewSeriesNone: 'None',
   apiKeyHelp: 'Find it in Sonarr: Settings > General > Security > API Key',
   baseUrlHelp:
     'If you set a URL Base in Sonarr (Settings > General > Host), enter it here (e.g. /sonarr). Leave blank otherwise.',
@@ -93,6 +109,17 @@ const messages = defineMessages('components.Settings.SonarrModal', {
   enableSearchHelp:
     'Automatically trigger a search in Sonarr when a request is approved.',
 });
+
+const monitorNewSeriesMessages = {
+  all: messages.monitorNewSeriesAll,
+  future: messages.monitorNewSeriesFuture,
+  missing: messages.monitorNewSeriesMissing,
+  existing: messages.monitorNewSeriesExisting,
+  pilot: messages.monitorNewSeriesPilot,
+  firstSeason: messages.monitorNewSeriesFirstSeason,
+  latestSeason: messages.monitorNewSeriesLatestSeason,
+  none: messages.monitorNewSeriesNone,
+} satisfies Record<SonarrMonitorType, MessageDescriptor>;
 
 interface SonarrModalProps {
   sonarr: SonarrSettings | null;
@@ -159,6 +186,7 @@ const SonarrModal = ({ onClose, sonarr, onSave }: SonarrModalProps) => {
         intl.formatMessage(messages.validationBaseUrlTrailingSlash),
         (value) => !value || !value.endsWith('/')
       ),
+    monitorNewSeries: Yup.string().oneOf(['', ...SONARR_MONITOR_TYPES]),
   });
 
   const testConnection = useCallback(
@@ -262,6 +290,7 @@ const SonarrModal = ({ onClose, sonarr, onSave }: SonarrModalProps) => {
           enableSearch: !sonarr?.preventSearch,
           tagRequests: sonarr?.tagRequests ?? false,
           monitorNewItems: sonarr?.monitorNewItems ?? 'all',
+          monitorNewSeries: sonarr?.monitorNewSeries ?? '',
         }}
         validationSchema={SonarrSettingsSchema}
         onSubmit={async (values) => {
@@ -306,6 +335,7 @@ const SonarrModal = ({ onClose, sonarr, onSave }: SonarrModalProps) => {
               preventSearch: !values.enableSearch,
               tagRequests: values.tagRequests,
               monitorNewItems: values.monitorNewItems,
+              monitorNewSeries: values.monitorNewSeries || undefined,
             };
             if (!sonarr) {
               await axios.post('/api/v1/settings/sonarr', submission);
@@ -1010,6 +1040,41 @@ const SonarrModal = ({ onClose, sonarr, onSave }: SonarrModalProps) => {
                       name="enableSeasonFolders"
                     />
                   </div>
+                </div>
+                <div className="form-row">
+                  <label htmlFor="monitorNewSeries" className="text-label">
+                    {intl.formatMessage(messages.monitorNewSeries)}
+                    <span className="label-tip">
+                      {intl.formatMessage(messages.monitorNewSeriesHelp)}
+                    </span>
+                  </label>
+                  <div className="form-input-area">
+                    <div className="form-input-field">
+                      <Field
+                        as="select"
+                        id="monitorNewSeries"
+                        name="monitorNewSeries"
+                        disabled={!isValidated || isTesting}
+                      >
+                        <option value="">
+                          {intl.formatMessage(
+                            messages.monitorNewSeriesRequested
+                          )}
+                        </option>
+                        {SONARR_MONITOR_TYPES.map((monitorType) => (
+                          <option key={monitorType} value={monitorType}>
+                            {intl.formatMessage(
+                              monitorNewSeriesMessages[monitorType]
+                            )}
+                          </option>
+                        ))}
+                      </Field>
+                    </div>
+                  </div>
+                  {errors.monitorNewSeries &&
+                    touched.monitorNewSeries && (
+                      <div className="error">{errors.monitorNewSeries}</div>
+                    )}
                 </div>
                 <div className="form-row">
                   <label htmlFor="monitorNewItems" className="text-label">

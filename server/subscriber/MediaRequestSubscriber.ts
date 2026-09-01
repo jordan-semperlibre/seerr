@@ -722,6 +722,7 @@ export class MediaRequestSubscriber implements EntitySubscriberInterface<MediaRe
           tags,
           monitored: true,
           monitorNewItems: sonarrSettings.monitorNewItems,
+          monitorNewSeries: sonarrSettings.monitorNewSeries,
           searchNow: !sonarrSettings.preventSearch,
         };
 
